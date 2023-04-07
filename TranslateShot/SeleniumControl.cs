@@ -33,6 +33,7 @@ namespace TranslateShot
 
             // インストールされているバージョン
             new DriverManager().SetUpDriver(new ChromeConfig(), VersionResolveStrategy.MatchingBrowser);
+           
         }
 
         public void OpenWebPage()
@@ -44,7 +45,10 @@ namespace TranslateShot
             options.AddUserProfilePreference("download.prompt_for_download", "false");
             options.AddUserProfilePreference("download.directory_upgrade", "true");
 
-            using (var driver = new ChromeDriver(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), options))
+            var driverVersion = new ChromeConfig().GetMatchingBrowserVersion();
+            var driverPath = $"./Chrome/{driverVersion}/X64/";
+
+            using (var driver = new ChromeDriver(driverPath, options))
             {
                 //FindElement時、読み込まれるまで待機させる設定
                 driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(15);
