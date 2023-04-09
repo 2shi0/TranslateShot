@@ -28,12 +28,8 @@ namespace TranslateShot
 
             Console.WriteLine("ChromeDriverを取得中");
 
-            // 最新版
-            //new DriverManager().SetUpDriver(new ChromeConfig());
-
-            // インストールされているバージョン
+            //PCにインストールされているのと同じバージョン
             new DriverManager().SetUpDriver(new ChromeConfig(), VersionResolveStrategy.MatchingBrowser);
-           
         }
 
         public void OpenWebPage()
@@ -44,55 +40,74 @@ namespace TranslateShot
             options.AddUserProfilePreference("download.default_directory", Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "\\" + directoryControl.folderPath);
             options.AddUserProfilePreference("download.prompt_for_download", "false");
             options.AddUserProfilePreference("download.directory_upgrade", "true");
+            //options.AddArgument("--headless");
 
+            //コンソール非表示
+            ChromeDriverService service = ChromeDriverService.CreateDefaultService();
+            service.HideCommandPromptWindow = true;
+
+            //driver.exeのパス指定
             var driverVersion = new ChromeConfig().GetMatchingBrowserVersion();
             var driverPath = $"./Chrome/{driverVersion}/X64/";
 
-            using (var driver = new ChromeDriver(driverPath, options))
+            using (var driver = new ChromeDriver(service, options))
             {
+                //画面最大化
+                driver.Manage().Window.Size = new System.Drawing.Size(1920,1080);
+
                 //FindElement時、読み込まれるまで待機させる設定
-                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(15);
+                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
 
                 //URL
-                string url = "https://translate.yandex.com/ocr?";
+                string url = "https://www.google.com";
 
-                //押すボタンのXPATH
-                string russian = "/html/body/div[1]/main/div[1]/div[1]/div[2]/div/button[3]";
-                string japanese = "/html/body/div[1]/main/div[1]/div[1]/div[4]/div/div[2]/div/div[43]";
-                string download = "/html/body/div[1]/main/div[1]/div[1]/div[3]/button[2]";
-
-                // URLへ遷移
                 try
                 {
                     driver.Navigate().GoToUrl(url);
-                    while (driver.Url != url) ;
                 }
                 catch
                 {
+                    MessageBox.Show("urlへのアクセスに失敗しました。");
                     return;
                 }
-                
-                /*
-                //読み込まれるまで待機（旧）
-                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(15));
-                wait.Until(drv => drv.FindElement(By.XPath(russian)));
 
-                
-                var element = driver.FindElement(By.XPath(russian));
-                Actions actions = new Actions(driver);
-                actions.MoveToElement(element);
-                actions.Perform();
-                */
+                string imgButtonPath = "/html/body/div[1]/div[3]/form/div[1]/div[1]/div[1]/div/div[3]/div[3]";
+                string isOpenedXPath = "/html/body/div[1]/div[3]/form/div[1]/div[1]/div[3]/c-wiz/div[2]/div/div[3]/div[2]/div/div[2]";
+                string translateButtonPath = "/html/body/c-wiz/div/div[2]/div/c-wiz/div/div[1]/div/div[3]/div/div/span[3]/span/button/span[1]";
+                string isTranslatedPath = "/html/body/c-wiz/div/div[2]/div/c-wiz/div/div[2]/div/div/div/div[1]/div/div[3]/div/div";
 
-                driver.FindElement(By.XPath(russian)).Click();
-                driver.FindElement(By.XPath(japanese)).Click();
+                driver.FindElement(By.XPath(imgButtonPath)).Click();
+
+                driver.FindElement(By.XPath(isOpenedXPath)).Click();
 
                 keySend.CtrlV();
 
-                driver.FindElement(By.XPath(download)).Click();
+                driver.FindElement(By.XPath(translateButtonPath)).Click();
 
-                MessageBox.Show("Finished");
+                driver.FindElement(By.XPath(translateButtonPath)).Click();
+
+                driver.FindElement(By.XPath(translateButtonPath)).Click();
+
+                driver.FindElement(By.XPath(isTranslatedPath));
+
+                Screenshot screenshot = (driver as ITakesScreenshot).GetScreenshot();
+
+                string pngName = "result.png";
+                screenshot.SaveAsFile(pngName, ScreenshotImageFormat.Png);
+
+                /*
+                using (Form dummyForm = new Form())
+                {
+                    dummyForm.TopMost = true;
+                    MessageBox.Show(dummyForm, "Finished");
+                    dummyForm.TopMost = false;
+                }
+                */
+
+                System.Diagnostics.Process.Start(pngName);
             }
+
+            
         }
     }
 }
