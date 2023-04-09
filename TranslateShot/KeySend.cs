@@ -17,5 +17,10 @@ namespace TranslateShot
         {
             SendKeys.SendWait("^v");
         }
+
+        public void Shrink()
+        {
+            SendKeys.SendWait("^+-");
+        }
     }
 }

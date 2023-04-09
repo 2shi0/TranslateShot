@@ -52,8 +52,11 @@ namespace TranslateShot
 
             using (var driver = new ChromeDriver(service, options))
             {
-                //画面最大化
-                driver.Manage().Window.Size = new System.Drawing.Size(1920,1080);
+                //ウィンドウ最大化
+                driver.Manage().Window.Maximize();
+
+                //縮尺を100%に
+                driver.FindElement(By.TagName("body")).SendKeys(OpenQA.Selenium.Keys.Control + "0");
 
                 //FindElement時、読み込まれるまで待機させる設定
                 driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
@@ -89,6 +92,9 @@ namespace TranslateShot
                 driver.FindElement(By.XPath(translateButtonPath)).Click();
 
                 driver.FindElement(By.XPath(isTranslatedPath));
+
+                for(int i=0;i<7;i++)
+                    keySend.Shrink();
 
                 Screenshot screenshot = (driver as ITakesScreenshot).GetScreenshot();
 
